@@ -260,3 +260,9 @@
 .product-card .btn-like:hover {
   color: var(--primary-green-dark) !important;
 }
+.btn-cart {
+  display: block;
+  width: 100%;        /* растягиваем на всю ширину родителя */
+  padding: 0.48rem 1rem;
+  font-size: 1.25rem;
+}
