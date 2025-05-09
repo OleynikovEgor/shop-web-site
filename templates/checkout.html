@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Корзина — Chrono Elegance</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Bootstrap CSS + Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+        rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+        rel="stylesheet">
+  <!-- Ваши стили -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+  <!-- Шапка (копируется из main_page.html) -->
+  <nav class="navbar navbar-expand-lg navbar-light custom-navbar py-3">
+    <div class="container">
+      <a class="navbar-brand" href="{{ url_for('main_page') }}">
+        <img src="{{ url_for('static', filename='img/crono_elegance.png') }}"
+             alt="Chrono Elegance" height="40">
+      </a>
+      <form class="d-flex mx-auto w-50" action="{{ url_for('main_page') }}" method="get">
+        <input class="form-control me-2" type="search" name="q"
+               placeholder="Поиск часов" aria-label="Search"
+               value="{{ request.args.get('q','') }}">
+        <button class="btn btn-outline-secondary" type="submit">
+          <i class="bi bi-search"></i>
+        </button>
+      </form>
+      <ul class="navbar-nav ms-auto align-items-center">
+        {% if session.get('user_id') %}
+          <li class="nav-item me-3">
+            <a class="nav-link fs-4 text-dark" href="{{ url_for('favorites') }}">
+              <i class="bi bi-heart"></i>
+            </a>
+          </li>
+          <li class="nav-item position-relative me-4">
+            <a class="nav-link fs-4 text-dark position-relative" href="{{ url_for('cart_view') }}">
+              <i class="bi bi-cart"></i>
+              {% if cart_count and cart_count > 0 %}
+                <span class="cart-count-inside">
+                  {{ cart_count if cart_count < 10 else '10+' }}
+                </span>
+              {% endif %}
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="btn btn-dark text-white" href="{{ url_for('profile') }}">Личный кабинет</a>
+          </li>
+        {% else %}
+          <li class="nav-item me-3">
+            <a class="nav-link fs-4 text-dark" href="{{ url_for('login') }}">
+              <i class="bi bi-heart"></i>
+            </a>
+          </li>
+          <li class="nav-item me-4">
+            <a class="nav-link fs-4 text-dark" href="{{ url_for('login') }}">
+              <i class="bi bi-cart"></i>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="btn btn-dark text-white" href="{{ url_for('login') }}">Войти</a>
+          </li>
+        {% endif %}
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Контент корзины -->
+  <main class="container my-5">
+    <h3 class="mb-4">Ваша корзина</h3>
+
+    {% if items %}
+      {% for it in items %}
+        <div class="cart-item d-flex align-items-center mb-4">
+          <!-- Изображение товара -->
+          <div class="item-img me-4">
+            <a href="{{ url_for('product_detail', product_id=it.product.id) }}">
+              <img src="{{ url_for('static', filename='img/products/' ~ it.product.image) }}"
+                   alt="{{ it.product.name }}" width="100" class="img-fluid rounded">
+            </a>
+          </div>
+          <!-- Описание -->
+          <div class="item-info flex-grow-1">
+            <h5 class="item-name mb-1">{{ it.product.name }}</h5>
+            <p class="item-type text-muted mb-1">{{ it.product.type }}</p>
+            <p class="item-delivery text-secondary mb-3">Доставка 2–3 дня</p>
+
+            <div class="d-flex align-items-center">
+              <!-- Кнопки управления количеством -->
+              {% set qty = it.quantity %}
+              <form action="{{ url_for('remove_from_cart', product_id=it.product.id) }}"
+                    method="post" class="me-2">
+                <button type="submit" class="btn-control">−</button>
+              </form>
+              <span class="quantity-label">{{ qty }}</span>
+              <form action="{{ url_for('add_to_cart', product_id=it.product.id) }}"
+                    method="post" class="ms-2 me-4">
+                <button type="submit" class="btn-control">+</button>
+              </form>
+
+              <!-- Цена -->
+              <span class="price fw-bold">{{ it.product.price|thousands_sep }} ₽</span>
+            </div>
+          </div>
+          <!-- Кнопка купить -->
+          <div class="item-action ms-4">
+            <a href="{{ url_for('checkout') }}" class="btn btn-success">
+              Оформить
+            </a>
+          </div>
+        </div>
+      {% endfor %}
+
+      <!-- Итог -->
+      <div class="total text-end mb-4">
+        <h5>Итого: {{ total|thousands_sep }} ₽</h5>
+      </div>
+
+      <!-- Действия -->
+      <div class="d-flex justify-content-between">
+        <a href="{{ url_for('main_page') }}" class="btn btn-secondary">
+          ← Продолжить покупки
+        </a>
+        <a href="{{ url_for('checkout') }}" class="btn btn-success">
+          Оформить заказ
+        </a>
+      </div>
+
+    {% else %}
+      <p>Ваша корзина пуста.</p>
+      <a href="{{ url_for('main_page') }}" class="btn btn-secondary">
+        ← Вернуться к покупкам
+      </a>
+    {% endif %}
+  </main>
+
+  <!-- Скрипты -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js">
+  </script>
+</body>
+</html>

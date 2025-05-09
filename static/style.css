@@ -1,0 +1,262 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap');
+
+:root {
+  --primary-green: #90ee90;
+  --primary-green-dark: #77cc77;
+  --text-dark: #212529;
+  --bg-img-frame: #f8f9fa;
+}
+
+/* === Шапка === */
+.custom-navbar {
+  background: var(--primary-green);
+  height: 80px;
+  padding: 0 1rem;
+}
+.site-logo {
+  height: 56px;
+  margin-right: 1rem;
+}
+
+/* === Поиск === */
+.header-search {
+  flex: 1;
+  max-width: 480px;
+  display: flex;
+  height: 36px;
+}
+.header-search .form-control {
+  border-radius: 18px 0 0 18px;
+  border: 1px solid #ccc;
+  border-right: none;
+  padding: 0 0.75rem;
+}
+.header-search-btn {
+  border-radius: 0 18px 18px 0;
+  border: 1px solid #ccc;
+  background: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* === Иконки в шапке === */
+.header-icon {
+  font-size: 1.5rem;
+  color: #000;
+  margin: 0 1.5rem;
+}
+
+/* === Кнопка Войти/Кабинет === */
+.auth-btn {
+  background: transparent;
+  color: #000;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  font-weight: 500;
+}
+
+/* === Карточка товара === */
+.product-card {
+  border: none;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  transition: transform .2s, box-shadow .2s;
+  display: flex;
+  flex-direction: column;
+}
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+}
+
+/* === Рамка и фон под картинку === */
+.img-frame {
+  background: var(--bg-img-frame);
+  border: 1px solid #dee2e6;
+  border-radius: 12px 12px 0 0;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+.img-frame .card-img-top {
+  width: 100%;
+  aspect-ratio: 1/1;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+/* === Заголовки === */
+.card-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+.card-subtitle {
+  font-size: 1rem;
+  color: #6c757d;
+  margin-bottom: 0.75rem;
+}
+
+/* === Рейтинг === */
+.rating {
+  display: flex;
+  align-items: center;
+}
+.rating i {
+  color: var(--primary-green);
+}
+.rating-number {
+  font-size: 1rem;
+  margin-left: 0.25rem;
+  color: var(--text-dark);
+}
+.rating-count {
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin-left: 0.5rem;
+}
+
+/* === Цена === */
+.price {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #343a40;
+}
+
+/* === Кнопка «В корзину» === */
+.btn-cart {
+  display: block;
+  width: 100%;
+  padding: 0.75rem;
+  font-weight: 600;
+  background-color: var(--primary-green);
+  color: var(--text-dark);
+  border: none;
+  border-radius: 0.5rem;
+  transition: background-color .2s;
+}
+.btn-cart i {
+  margin-right: 0.5rem;
+}
+.btn-cart:hover {
+  background-color: var(--primary-green-dark);
+}
+
+/* === Кнопка «Лайк» === */
+.btn-like {
+  width: 50px;
+  height: 50px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--primary-green);
+  border: none;
+  margin-left: 0; /* убираем лишний отступ */
+}
+.btn-like i {
+  font-size: 1.25rem;
+}
+.btn-like:hover {
+  color: var(--primary-green-dark);
+}
+
+/* === Отступы между карточками === */
+.row.gx-3.gy-4 {
+  row-gap: 1.5rem;
+  column-gap: 1rem;
+}
+
+/* === Flash-уведомления без щели === */
+.alert {
+  margin: 0 !important;
+  border-radius: 0 !important;
+}
+
+/* === Кнопка серого цвета для форм === */
+.btn-add-gray {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  color: #fff;
+}
+.btn-add-gray:hover {
+  background-color: #5a6268;
+  border-color: #545b62;
+  color: #fff;
+}
+
+/* === Счётчик в корзине === */
+.navbar .nav-link.fs-4.position-relative {
+  position: relative;
+}
+.cart-count-inside {
+  position: absolute;
+  top: 0.6em;
+  right: 0.25em;
+  background: transparent;
+  color: #000;
+  font-weight: 700;
+  font-size: 0.7rem;
+  line-height: 1;
+  pointer-events: none;
+}
+
+/* === Кнопки управления количеством товаров === */
+.btn-control {
+  background-color: var(--primary-green);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  transition: background-color .2s;
+}
+.btn-control:hover {
+  background-color: var(--primary-green-dark);
+}
+
+/* в файле style.css */
+.qty-group {
+    /* вместо margin-left: auto; задаём фиксированный отступ */
+    margin-left: 45px;      /* ← отрегулируйте это значение по вкусу */
+    border: 1px solid var(--primary-green-dark);
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.qty-group .btn-control {
+  border-radius: 0;
+  margin: 0;
+  padding: 0;
+}
+.qty-group .qty-display {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.75rem;
+  font-weight: 600;
+  background-color: #fff;
+  color: var(--text-dark);
+}
+
+/* === Фиксация кнопки «лайк» в карточке === */
+.product-card .btn-like {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.5rem !important;      /* чуть справа от кнопки */
+  background: transparent !important;
+  color: var(--primary-green) !important;
+  border: none !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 0 !important;
+  font-size: 1.25rem !important;
+}
+.product-card .btn-like:hover {
+  color: var(--primary-green-dark) !important;
+}
