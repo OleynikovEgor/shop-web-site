@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Личный кабинет</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Яндекс.Карты + Suggest -->
+    <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU&apikey=e316fe81-dbed-4ac0-83f8-4ad73cd3dfde&suggest_apikey=a6af5dac-9bc6-4908-98e8-01a7619e0118&load=package.suggest"
+            type="text/javascript"></script>
+
+    <style>
+        body {
+          background: url("{{ url_for('static', filename='img/profile_bg.jpg') }}") center/cover no-repeat fixed;
+          min-height: 100vh;
+        }
+        .profile-container {
+          max-width: 960px;
+          margin: 40px auto;
+          background: rgba(255, 255, 255, 0.8);
+          border-radius: 12px;
+          box-shadow: 0 0 10px rgba(0,0,0,0.05);
+          padding: 30px;
+        }
+        .profile-avatar {
+          width: 80px;
+          height: 80px;
+          object-fit: cover;
+          border-radius: 50%;
+        }
+        .nav-pills .nav-link { color: #212529; margin-bottom: .5rem; }
+        .nav-pills .nav-link.active,
+        .nav-pills .nav-link:hover { background-color: #90ee90; color: #212529; }
+        .selected-address { background-color: #90ee90 !important; color: #212529 !important; }
+        .card.selected-address .card-body { background-color: #90ee90 !important; color: #212529 !important; }
+        .btn-add-gray { background-color: #6c757d; border-color: #6c757d; color: #fff; }
+        .btn-delete-beige { background-color: #f5f5dc; border-color: #f5f5dc; color: #212529; }
+        .alert-warning { background-color: #f5f5dc !important; border-color: #f5f5dc !important; color: #212529 !important; }
+    </style>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light custom-navbar py-3">
+    <div class="container">
+        <a class="navbar-brand" href="{{ url_for('main_page') }}">
+            <img src="{{ url_for('static', filename='img/crono_elegance.png') }}"
+                 alt="Chrono Elegance" height="40">
+        </a>
+
+        <!-- Поиск -->
+        <form class="d-flex mx-auto w-50" action="{{ url_for('main_page') }}" method="get">
+            <input class="form-control me-2" type="search" name="q"
+                   placeholder="Поиск часов" aria-label="Search"
+                   value="{{ request.args.get('q','') }}">
+            <button class="btn btn-outline-secondary" type="submit">
+                <i class="bi bi-search"></i>
+            </button>
+        </form>
+
+        <ul class="navbar-nav ms-auto align-items-center">
+            {% if session.get('user_id') %}
+            <!-- Лайк: всегда контур, подсчёт -->
+            <li class="nav-item position-relative me-3">
+                <a class="nav-link fs-4 text-dark" href="{{ url_for('favorites_view') }}">
+                    <i class="bi bi-heart"></i>
+                    {% if liked_count > 0 %}
+                    <span class="heart-count-inside">{{ liked_count if liked_count<10 else '10+' }}</span>
+                    {% endif %}
+                </a>
+            </li>
+
+            <!-- КОРЗИНА: возвращена в шапку -->
+            <li class="nav-item position-relative me-4">
+                <a class="nav-link fs-4 text-dark" href="{{ url_for('cart_view') }}">
+                    <i class="bi bi-cart"></i>
+                    {% if cart_count > 0 %}
+                    <span class="cart-count-inside">{{ cart_count if cart_count<10 else '10+' }}</span>
+                    {% endif %}
+                </a>
+            </li>
+
+            <!-- Личный кабинет -->
+            <li class="nav-item">
+                <a class="btn btn-dark text-white" href="{{ url_for('profile') }}">Личный кабинет</a>
+            </li>
+            {% else %}
+            <!-- для гостей -->
+            <li class="nav-item me-3">
+                <a class="nav-link fs-4 text-dark" href="{{ url_for('login') }}">
+                    <i class="bi bi-heart"></i>
+                </a>
+            </li>
+            <li class="nav-item me-4">
+                <a class="nav-link fs-4 text-dark" href="{{ url_for('login') }}">
+                    <i class="bi bi-cart"></i>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="btn btn-dark text-white" href="{{ url_for('login') }}">Войти</a>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+</nav>
+<!-- Flash-сообщения -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+{% for category, message in messages %}
+<div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+    {{ message|safe }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрыть"></button>
+</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
+
+<div class="container profile-container">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="text-center mb-4">
+                <img src="{{ url_for('static', filename='avatars/' ~ (user.avatar or 'siluet.svg')) }}"
+                     class="profile-avatar" alt="avatar">
+                <h5 class="mt-2">{{ user.first_name }} {{ user.last_name }}</h5>
+                <p class="text-muted small">{{ user.email }}</p>
+            </div>
+            <ul class="nav nav-pills flex-column" id="profile-tabs" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link" id="tab-profile-btn" data-bs-toggle="pill" data-bs-target="#tab-profile"
+                            type="button">👤 Профиль
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" id="tab-orders-btn" data-bs-toggle="pill" data-bs-target="#tab-orders"
+                            type="button">📦 Мои заказы
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" id="tab-addresses-btn" data-bs-toggle="pill"
+                            data-bs-target="#tab-addresses" type="button">📬 Адреса
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" id="tab-payments-btn" data-bs-toggle="pill" data-bs-target="#tab-payments"
+                            type="button">💳 Платежи
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" id="tab-security-btn" data-bs-toggle="pill" data-bs-target="#tab-security"
+                            type="button">🔐 Безопасность
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+        <div class="col-md-9">
+            <div class="tab-content" id="profile-tabs-content">
+
+                <!-- Вкладка Профиль -->
+                <div class="tab-pane fade" id="tab-profile" role="tabpanel">
+                    <h4>Профиль</h4>
+                    <hr>
+                    <form id="profile-form" method="POST" action="{{ url_for('profile') }}">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Имя</label>
+                                <input name="first_name" class="form-control" disabled value="{{ user.first_name }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Фамилия</label>
+                                <input name="last_name" class="form-control" disabled value="{{ user.last_name }}">
+                            </div>
+                            <div class="col-md-6 mt-3">
+                                <label class="form-label">Email</label>
+                                <input name="email" type="email" class="form-control" disabled value="{{ user.email }}">
+                            </div>
+                            <div class="col-md-6 mt-3">
+                                <label class="form-label">Телефон</label>
+                                <input name="phone_num" class="form-control" disabled value="{{ user.phone_num }}">
+                            </div>
+                        </div>
+                        <div id="profile-actions" class="mb-3">
+                            <button type="button" id="edit-profile-btn" class="btn btn-add-gray">Редактировать</button>
+                            <a href="{{ url_for('login') }}" class="btn btn-delete-beige ms-2">Выйти</a>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Вкладка Мои заказы -->
+                <!-- Вкладка Мои заказы -->
+                <div class="tab-pane fade" id="tab-orders" role="tabpanel">
+                    <h4>Мои заказы</h4>
+                    {% if orders %}
+                    <ul class="list-group">
+                        {% for order in orders %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                {# Берём первый пункт заказа, чтобы показать картинку #}
+                                {% set first_item = order.items[0] %}
+                                <img
+                                        src="{{ url_for('static', filename='img/products/' ~ first_item.variant.image_main) }}"
+                                        alt="{{ first_item.variant.product.name }}"
+                                        width="60"
+                                        class="me-3 rounded"
+                                >
+                                <div>
+                                    <strong>Заказ №{{ order.id }}</strong><br>
+                                    Дата: {{ order.created_at.strftime('%d.%m.%Y') }}<br>
+                                    Сумма: {{ order.total_amount|thousands_sep }} ₽
+                                </div>
+                            </div>
+                            <a href="{{ url_for('order_confirmation', order_id=order.id) }}"
+                               class="btn btn-primary btn-sm">
+                                Подробнее
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p>У вас ещё нет оформленных заказов.</p>
+                    {% endif %}
+                </div>
+
+
+                <!-- Вкладка Адреса -->
+                <div class="tab-pane fade" id="tab-addresses" role="tabpanel">
+                    <h4>Адреса</h4>
+                    <form method="POST" action="{{ url_for('add_address') }}">
+                        <div class="input-group mb-3">
+                            <input id="address_input" name="new_address" class="form-control"
+                                   placeholder="Начните вводить адрес…" required>
+                            <button class="btn btn-add-gray" type="submit">Добавить</button>
+                        </div>
+                    </form>
+                    {% if addresses %}
+                    <ul class="list-group">
+                        {% for addr in addresses %}
+                        <li class="list-group-item d-flex align-items-center {% if addr.is_default %}selected-address{% endif %}">
+                            <form method="POST" action="{{ url_for('select_address', address_id=addr.id) }}"
+                                  class="me-3">
+                                <input class="form-check-input" type="radio" name="default_address"
+                                       onchange="this.form.submit()" {% if addr.is_default %}checked{% endif %}>
+                            </form>
+                            <span class="flex-grow-1">{{ addr.address }}</span>
+                            <form method="POST" action="{{ url_for('delete_address', address_id=addr.id) }}">
+                                <button class="btn btn-sm btn-delete-beige">Удалить</button>
+                            </form>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p>Нет сохранённых адресов.</p>
+                    {% endif %}
+                </div>
+
+                <!-- Вкладка Платежи -->
+                <div class="tab-pane fade" id="tab-payments" role="tabpanel">
+                    <h4>Платежи</h4>
+                    {% if payments %}
+                    {% for payment in payments %}
+                    <div class="card mb-3 {% if payment.is_default %}selected-address{% endif %}">
+                        <div class="card-body d-flex align-items-center">
+                            <form method="POST" action="{{ url_for('select_payment', payment_id=payment.id) }}"
+                                  class="me-3">
+                                <input class="form-check-input" type="radio" name="default_payment"
+                                       onchange="this.form.submit()" {% if payment.is_default %}checked{% endif %}>
+                            </form>
+                            <h5 class="card-title mb-0 flex-grow-1">Visa **** {{ payment.card_last4 }}</h5>
+                            <form method="POST" action="{{ url_for('delete_payment', payment_id=payment.id) }}">
+                                <button class="btn btn-sm btn-delete-beige">Удалить</button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <p>Нет сохранённых методов оплаты.</p>
+                    {% endif %}
+                    <button class="btn btn-add-gray" data-bs-toggle="modal" data-bs-target="#addPaymentModal">Добавить
+                        новый метод оплаты
+                    </button>
+                </div>
+
+                <!-- Вкладка Безопасность -->
+                <div class="tab-pane fade" id="tab-security" role="tabpanel">
+                    <h4>Безопасность</h4>
+                    <hr>
+                    <button class="btn btn-add-gray mb-3" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#collapseChangePassword">Сменить пароль
+                    </button>
+                    <div class="collapse" id="collapseChangePassword">
+                        <form method="POST" action="{{ url_for('change_password') }}">
+                            <div class="mb-3">
+                                <label class="form-label">Старый пароль</label>
+                                <input name="old_password" type="password" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Новый пароль</label>
+                                <input name="new_password" type="password" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Подтвердите новый пароль</label>
+                                <input name="confirm_password" type="password" class="form-control" required>
+                            </div>
+                            <button type="submit" class="btn btn-delete-beige">Сохранить</button>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно Добавить метод оплаты -->
+<div class="modal fade" id="addPaymentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('add_payment') }}">
+                <div class="modal-header">
+                    <h5 class="modal-title">Добавить метод оплаты</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    {% with errs = get_flashed_messages(category_filter=["warning"]) %}
+                    {% if errs %}
+                    <div class="alert alert-warning">
+                        {% for e in errs %}{{ e }}<br>{% endfor %}
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+                    <div class="mb-3">
+                        <label class="form-label">Номер карты</label>
+                        <input id="card_number" name="card_number" class="form-control" maxlength="19"
+                               placeholder="____ ____ ____ ____" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Срок действия (MM/YY)</label>
+                        <input id="expiry_date" name="expiry_date" class="form-control" placeholder="MM/YY" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">CVV</label>
+                        <input name="cvv" class="form-control" maxlength="4" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                    <button type="submit" class="btn btn-success">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // 1) Показ вкладки по hash или по умолчанию Профиль
+      var hash = window.location.hash;
+      var btn = document.querySelector('[data-bs-target="' + hash + '"]');
+      if (btn) new bootstrap.Tab(btn).show(); else new bootstrap.Tab(document.getElementById('tab-profile-btn')).show();
+
+      // 2) Обновление hash при смене вкладок
+      document.querySelectorAll('button[data-bs-toggle="pill"]').forEach(function(b) {
+        b.addEventListener('shown.bs.tab', function(e) {
+          history.replaceState(null, '', e.target.getAttribute('data-bs-target'));
+        });
+      });
+
+      // 3) Авто-скрытие flash
+      document.querySelectorAll('.alert-dismissible').forEach(function(el) {
+        setTimeout(function() { bootstrap.Alert.getOrCreateInstance(el).close(); }, 7000);
+      });
+
+      // 4) Ленивый Suggest для вкладки Адреса
+      document.querySelectorAll('button[data-bs-toggle="pill"]').forEach(function(b) {
+        b.addEventListener('shown.bs.tab', function(e) {
+          if (e.target.dataset.bsTarget === '#tab-addresses' && !window._addressSuggestInited) {
+            ymaps.modules.require(['SuggestView'], function(SV) {
+              new SV('address_input'); window._addressSuggestInited = true;
+            });
+          }
+        });
+      });
+
+      // 5) Форматирование полей карты
+      document.getElementById('expiry_date')?.addEventListener('input', function(e) {
+        var v = e.target.value.replace(/\D/g, ''); if (v.length > 2) v = v.slice(0,2) + '/' + v.slice(2);
+        e.target.value = v;
+      });
+      document.getElementById('card_number')?.addEventListener('input', function(e) {
+        var v = e.target.value.replace(/\D/g, ''), parts = [];
+        for (var i = 0; i < v.length; i += 4) parts.push(v.slice(i,i+4));
+        e.target.value = parts.join(' ');
+      });
+
+      // 6) Показ модалки оплаты если надо
+      {% if open_payment_modal %}
+        new bootstrap.Modal(document.getElementById('addPaymentModal')).show();
+      {% endif %}
+
+      // 7) Режим редактирования профиля
+      document.getElementById('edit-profile-btn').addEventListener('click', function() {
+        document.querySelectorAll('#profile-form input').forEach(function(i) { i.removeAttribute('disabled'); });
+        document.getElementById('profile-actions').innerHTML =
+          '<button type="submit" class="btn btn-success">Сохранить</button>' +
+          '<button type="button" id="cancel-profile-btn" class="btn btn-secondary ms-2">Отменить</button>' +
+          '<a href="' + '{{ url_for('login') }}' + '" class="btn btn-delete-beige ms-2">Выйти</a>';
+        document.getElementById('cancel-profile-btn').addEventListener('click', function() { location.reload(); });
+      });
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Спасибо за заказ — Chrono Elegance</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Bootstrap CSS + Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+        rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+        rel="stylesheet">
+  <!-- Ваши стили -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+  <!-- Навигация -->
+  <nav class="navbar navbar-expand-lg navbar-light custom-navbar py-3">
+    <div class="container">
+      <a class="navbar-brand" href="{{ url_for('main_page') }}">
+        <img src="{{ url_for('static', filename='img/crono_elegance.png') }}"
+             alt="Chrono Elegance" height="40">
+      </a>
+      <form class="d-flex mx-auto w-50" action="{{ url_for('main_page') }}" method="get">
+        <input class="form-control me-2" type="search" name="q"
+               placeholder="Поиск часов"
+               value="{{ request.args.get('q','') }}">
+        <button class="btn btn-outline-secondary" type="submit">
+          <i class="bi bi-search"></i>
+        </button>
+      </form>
+      <ul class="navbar-nav ms-auto align-items-center">
+        {% if session.get('user_id') %}
+          <li class="nav-item position-relative me-3">
+            <a class="nav-link fs-4 text-dark" href="{{ url_for('favorites_view') }}">
+              <i class="bi bi-heart"></i>
+              {% if liked_count > 0 %}
+                <span class="heart-count-inside">
+                  {{ liked_count if liked_count<10 else '10+' }}
+                </span>
+              {% endif %}
+            </a>
+          </li>
+          <li class="nav-item position-relative me-4">
+            <a class="nav-link fs-4 text-dark" href="{{ url_for('cart_view') }}">
+              <i class="bi bi-cart"></i>
+              {% if cart_count > 0 %}
+                <span class="cart-count-inside">
+                  {{ cart_count if cart_count<10 else '10+' }}
+                </span>
+              {% endif %}
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="btn btn-dark text-white" href="{{ url_for('profile') }}">
+              Личный кабинет
+            </a>
+          </li>
+        {% else %}
+          <li class="nav-item me-3">
+            <a class="nav-link fs-4 text-dark" href="{{ url_for('login') }}">
+              <i class="bi bi-heart"></i>
+            </a>
+          </li>
+          <li class="nav-item me-4">
+            <a class="nav-link fs-4 text-dark" href="{{ url_for('login') }}">
+              <i class="bi bi-cart"></i>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="btn btn-dark text-white" href="{{ url_for('login') }}">
+              Войти
+            </a>
+          </li>
+        {% endif %}
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Основная часть -->
+  <main class="container my-5 text-center">
+    <h2 class="mb-4">Спасибо за Ваш заказ!</h2>
+
+    <p class="mb-3">
+      Подробная информация о вашем заказе доступна в разделе
+      <a href="{{ url_for('profile') }}">Личный кабинет</a>.
+    </p>
+
+    <p class="lead mb-4">
+      В ближайшее время с вами свяжется наш менеджер для подтверждения деталей.
+    </p>
+
+    <p class="mb-1">Если у вас возникнут вопросы, пожалуйста, обращайтесь в службу поддержки:</p>
+    <ul class="list-unstyled mb-4">
+      <li>📞 Телефон: <a href="tel:+74951234567">+7 (495) 123-45-67</a></li>
+      <li>✉️ E-mail: <a href="mailto:support@chrono-elegance.ru">support@chrono-elegance.ru</a></li>
+    </ul>
+
+    <a href="{{ url_for('main_page') }}" class="btn btn-primary">
+      ← Вернуться в магазин
+    </a>
+  </main>
+
+  <!-- Подвал -->
+  <footer class="text-center py-4">
+    <small>© 2025 Chrono Elegance. Все права защищены.</small>
+  </footer>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js">
+  </script>
+</body>
+</html>
