@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Ваш заказ — Chrono Elegance</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS + Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+          rel="stylesheet">
+    <!-- Ваши стили -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light custom-navbar py-3">
+    <div class="container">
+        <a class="navbar-brand" href="{{ url_for('main_page') }}">
+            <img src="{{ url_for('static', filename='img/crono_elegance.png') }}"
+                 alt="Chrono Elegance" height="40">
+        </a>
+        <form class="d-flex mx-auto w-50" action="{{ url_for('main_page') }}" method="get">
+            <input class="form-control me-2" type="search" name="q"
+                   placeholder="Поиск часов" value="{{ request.args.get('q','') }}">
+            <button class="btn btn-outline-secondary" type="submit">
+                <i class="bi bi-search"></i>
+            </button>
+        </form>
+        <ul class="navbar-nav ms-auto align-items-center">
+            {% if session.get('user_id') %}
+            <li class="nav-item position-relative me-3">
+                <a class="nav-link fs-4 text-dark" href="{{ url_for('favorites_view') }}">
+                    <i class="bi bi-heart"></i>
+                    {% if liked_count > 0 %}
+                    <span class="heart-count-inside">{{ liked_count if liked_count<10 else '10+' }}</span>
+                    {% endif %}
+                </a>
+            </li>
+            <li class="nav-item position-relative me-4">
+                <a class="nav-link fs-4 text-dark" href="{{ url_for('cart_view') }}">
+                    <i class="bi bi-cart"></i>
+                    {% if cart_count > 0 %}
+                    <span class="cart-count-inside">{{ cart_count if cart_count<10 else '10+' }}</span>
+                    {% endif %}
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="btn btn-dark text-white" href="{{ url_for('profile') }}">Личный кабинет</a>
+            </li>
+            {% else %}
+            <li class="nav-item me-3">
+                <a class="nav-link fs-4 text-dark" href="{{ url_for('login') }}">
+                    <i class="bi bi-heart"></i>
+                </a>
+            </li>
+            <li class="nav-item me-4">
+                <a class="nav-link fs-4 text-dark" href="{{ url_for('login') }}">
+                    <i class="bi bi-cart"></i>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="btn btn-dark text-white" href="{{ url_for('login') }}">Войти</a>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+</nav>
+
+<main class="container my-5">
+  <!-- Центрированный блок с рамкой -->
+  <div class="mx-auto border rounded p-4" style="max-width: 700px;">
+    <h2 class="mb-4 text-center">Ваш заказ</h2>
+
+    <div class="mb-4">
+      <p class="mb-1"><strong>Статус:</strong> {{ order.status or 'Обрабатывается' }}</p>
+      <p class="mb-0"><strong>Ожидаемая дата доставки:</strong> {{ expected_date.strftime('%d.%m.%Y') }}</p>
+    </div>
+    <hr>
+
+    <h5 class="mb-3">Состав заказа</h5>
+    <div class="list-group mb-4">
+      {% for item in order.items %}
+      <div class="list-group-item py-3">
+        <!-- Теперь берём имя прямо из варианта -->
+        <h5 class="mb-2">{{ item.variant.name }}</h5>
+
+        <div class="d-flex align-items-center">
+          <img src="{{ url_for('static', filename='img/products/' ~ item.variant.image_main) }}"
+               width="60" class="me-3 rounded" alt="{{ item.variant.name }}">
+          <div class="flex-grow-1">
+            <p class="mb-1"><strong>Цвет:</strong> {{ item.variant.color_code }}</p>
+            <p class="mb-1"><strong>Кол-во:</strong> {{ item.quantity }}</p>
+            <p class="mb-1"><strong>Цена за шт.:</strong> {{ item.unit_price|thousands_sep }} ₽</p>
+            <p class="mb-0"><strong>Сумма:</strong> {{ (item.unit_price * item.quantity)|thousands_sep }} ₽</p>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="d-flex justify-content-between mb-3">
+      <strong>Итого:</strong>
+      <strong>{{ order.total_amount|thousands_sep }} ₽</strong>
+    </div>
+    <hr>
+
+    <div class="d-flex justify-content-between">
+      <a href="{{ url_for('profile') }}#tab-orders" class="btn btn-secondary btn-sm">
+        ← Мои заказы
+      </a>
+      <a href="{{ url_for('main_page') }}" class="btn btn-primary btn-sm">
+        ← В магазин
+      </a>
+    </div>
+  </div>
+</main>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
